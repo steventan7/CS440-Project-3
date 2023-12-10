@@ -3,7 +3,7 @@ import random
 from colorama import init, Back, Style
 init(autoreset=True)
 
-D = 20
+D = 10
 
 
 # Used to visualize the difference components of the game
@@ -11,13 +11,13 @@ def visualize_grid (image):
     for i in range(D):
         curr_row = ""
         for j in range(D):
-            if image[i][j] == 'R':
+            if image[i][j] == 1:
                 curr_row += (Style.RESET_ALL + Back.RED + "R_")
-            elif image[i][j] == 'B':
+            elif image[i][j] == 2:
                 curr_row += (Style.RESET_ALL + Back.BLUE + "B_")
-            elif image[i][j] == 'Y':
+            elif image[i][j] == 3:
                 curr_row += (Style.RESET_ALL + Back.YELLOW + "Y_")
-            elif image[i][j] == 'G':
+            elif image[i][j] == 4:
                 curr_row += (Style.RESET_ALL + Back.GREEN  + "G_")
             else:
                 curr_row += (Style.RESET_ALL + Back.WHITE + "__")
@@ -26,9 +26,14 @@ def visualize_grid (image):
 
 
 class Image:
+
+    '''
+
+    '''
     def __init__(self):
-        self.pixels = np.full((D, D), "", dtype=str)
-        self.is_dangerous = False
+        self.pixels = np.full((D, D), 0, dtype=float)
+        self.is_dangerous = 0
+
 
     '''
     Creates a 20X20 image each tile with color {Red, Blue, Yellow, Green} based upon the specified implementation
@@ -37,37 +42,31 @@ class Image:
         rows = set([r for r in range(D)])
         cols = set([c for c in range(D)])
 
-        pos, self.is_dangerous = 'ROW', False
-        while rows and cols:
-            prev_color, prev_pos = '', ''
-            colors = ['R', 'Y', 'B', 'G']
-            for i in range(4):
-                color = random.choice(list(colors))
-                colors.remove(color)
-                if pos == 'ROW':
-                    row = random.choice(list(rows))
-                    rows.remove(row)
-                    self.pixels[row] = color
-                    if prev_color == 'R' and color == 'Y' and prev_pos == 'COL':
-                        # print("DANGER")
-                        self.is_dangerous = True
-                else:
-                    col = random.choice(list(cols))
-                    cols.remove(col)
-                    self.pixels[:, col] = color
-                    if prev_color == 'R' and color == 'Y' and prev_pos == 'ROW':
-                        # print("DANGER")
-                        self.is_dangerous = True
-
-                prev_pos = pos
-                pos = 'COL' if pos == 'ROW' else 'ROW'
-                prev_color = color
-                # visualize_grid(self.pixels)
-                # print(color)
-                # x = input()
-                # if self.is_dangerous:
-                #     return self.pixels, self.is_dangerous
-            # print("cycle completed")
-            coin_flip = random.random()
-            pos = 'ROW' if coin_flip <= .5 else 'COL'
+        self.is_dangerous = 0
+        coin_flip = random.random()
+        pos = 'ROW' if coin_flip <= .5 else 'COL'
+        red_seen, red_pos = False, ''
+        colors = [1, 2, 3, 4]
+        for i in range(4):
+            color = random.choice(list(colors))
+            if color == 1:
+                red_seen = True
+                red_pos = pos
+            colors.remove(color)
+            if pos == 'ROW':
+                row = random.choice(list(rows))
+                rows.remove(row)
+                self.pixels[row] = color
+                if red_seen and red_pos == 'COL' and color == 3:
+                    self.is_dangerous = 1
+            else:
+                col = random.choice(list(cols))
+                cols.remove(col)
+                self.pixels[:, col] = color
+                if red_seen and red_pos == 'ROW' and color == 3:
+                    self.is_dangerous = 1
+            pos = 'COL' if pos == 'ROW' else 'ROW'
+        self.pixels = self.pixels.flatten()
         return self.pixels, self.is_dangerous
+
+
