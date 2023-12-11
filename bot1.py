@@ -30,7 +30,8 @@ def stocastic_gradient(X, dataset, alpha):
     w = np.zeros(n)
     newerror, olderror = 0, 0
 
-    for epoch in range(1000):
+    threshold = 0.0001
+    while abs(newerror - olderror) >= threshold:
         img = random.choice(X)
         y = dataset[img]
         x = img.pixels
@@ -60,12 +61,12 @@ if __name__ == '__main__':
     w = stocastic_gradient(training_data, dataset, 0.005)[0]
 
     count = 0
-    for image in training_data:
+    for image in testing_data:
         ans = dataset[image]
         pred = predict(image.pixels, w)
 
         if ans == np.round(pred):
             count += 1
-    print(count / len(training_data))
+    print(count / len(testing_data))
 
 
