@@ -1,3 +1,8 @@
+'''
+Implementation for Image
+@author Ajay Anand, Yashas Ravi, Steven Tan
+'''
+
 import numpy as np
 import random
 from colorama import init, Back, Style
@@ -29,6 +34,7 @@ class Image:
     def __init__(self):
         self.pixels = np.full((D, D), "", dtype=str)
         self.is_dangerous = False
+        self.dangerous_color = "X"
 
     '''
     Creates a 20X20 image each tile with color {Red, Blue, Yellow, Green} based upon the specified implementation
@@ -51,6 +57,7 @@ class Image:
                     if prev_color == 'R' and color == 'Y' and prev_pos == 'COL':
                         # print("DANGER")
                         self.is_dangerous = True
+                        self.dangerous_color = 'Y' # HOW TO DETERMINE?
                 else:
                     col = random.choice(list(cols))
                     cols.remove(col)
@@ -58,6 +65,7 @@ class Image:
                     if prev_color == 'R' and color == 'Y' and prev_pos == 'ROW':
                         # print("DANGER")
                         self.is_dangerous = True
+                        self.dangerous_color = 'Y' # HOW TO DETERMINE?
 
                 prev_pos = pos
                 pos = 'COL' if pos == 'ROW' else 'ROW'
@@ -70,4 +78,4 @@ class Image:
             # print("cycle completed")
             coin_flip = random.random()
             pos = 'ROW' if coin_flip <= .5 else 'COL'
-        return self.pixels, self.is_dangerous
+        return self.pixels, self.is_dangerous, self.dangerous_color
