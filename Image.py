@@ -16,13 +16,13 @@ def visualize_grid (image):
     for i in range(D):
         curr_row = ""
         for j in range(D):
-            if image[i][j] == 'R':
+            if image[i][j] == 1:
                 curr_row += (Style.RESET_ALL + Back.RED + "R_")
-            elif image[i][j] == 'B':
+            elif image[i][j] == 2:
                 curr_row += (Style.RESET_ALL + Back.BLUE + "B_")
-            elif image[i][j] == 'Y':
+            elif image[i][j] == 3:
                 curr_row += (Style.RESET_ALL + Back.YELLOW + "Y_")
-            elif image[i][j] == 'G':
+            elif image[i][j] == 4:
                 curr_row += (Style.RESET_ALL + Back.GREEN  + "G_")
             else:
                 curr_row += (Style.RESET_ALL + Back.WHITE + "__")
@@ -32,50 +32,45 @@ def visualize_grid (image):
 
 class Image:
     def __init__(self):
-        self.pixels = np.full((D, D), "", dtype=str)
-        self.is_dangerous = False
-        self.dangerous_color = "X"
+        self.pixels = np.full((D, D), 0, dtype=float)
+        self.is_dangerous = 0
+        self.third_wire = 0
 
-    '''
-    Creates a 20X20 image each tile with color {Red, Blue, Yellow, Green} based upon the specified implementation
+
+    '''Creates a 20X20 image each tile with color {Red, Blue, Yellow, Green} based upon the specified implementation
     '''
     def create_image(self):
         rows = set([r for r in range(D)])
         cols = set([c for c in range(D)])
 
-        pos, self.is_dangerous = 'ROW', False
-        while rows and cols:
-            prev_color, prev_pos = '', ''
-            colors = ['R', 'Y', 'B', 'G']
-            for i in range(4):
-                color = random.choice(list(colors))
-                colors.remove(color)
-                if pos == 'ROW':
-                    row = random.choice(list(rows))
-                    rows.remove(row)
-                    self.pixels[row] = color
-                    if prev_color == 'R' and color == 'Y' and prev_pos == 'COL':
-                        # print("DANGER")
-                        self.is_dangerous = True
-                        self.dangerous_color = 'Y' # HOW TO DETERMINE?
-                else:
-                    col = random.choice(list(cols))
-                    cols.remove(col)
-                    self.pixels[:, col] = color
-                    if prev_color == 'R' and color == 'Y' and prev_pos == 'ROW':
-                        # print("DANGER")
-                        self.is_dangerous = True
-                        self.dangerous_color = 'Y' # HOW TO DETERMINE?
+        self.is_dangerous = 0
+        coin_flip = random.random()
+        pos = 'ROW' if coin_flip <= .5 else 'COL'
+        red_seen, red_pos = False, ''
+        colors = [1, 2, 3, 4]
 
-                prev_pos = pos
-                pos = 'COL' if pos == 'ROW' else 'ROW'
-                prev_color = color
-                # visualize_grid(self.pixels)
-                # print(color)
-                # x = input()
-                # if self.is_dangerous:
-                #     return self.pixels, self.is_dangerous
-            # print("cycle completed")
-            coin_flip = random.random()
-            pos = 'ROW' if coin_flip <= .5 else 'COL'
-        return self.pixels, self.is_dangerous, self.dangerous_color
+        for i in range(4):
+            color = random.choice(list(colors))
+            if color == 1:
+                red_seen = True
+                red_pos = pos
+            colors.remove(color)
+            if i == 3:
+                self.third_wire = color
+            if pos == 'ROW':
+                row = random.choice(list(rows))
+                rows.remove(row)
+                self.pixels[row] = color
+                if red_seen and red_pos == 'COL' and color == 3:
+                    self.is_dangerous = 1
+            else:
+                col = random.choice(list(cols))
+                cols.remove(col)
+                self.pixels[:, col] = color
+                if red_seen and red_pos == 'ROW' and color == 3:
+                    self.is_dangerous = 1
+            pos = 'COL' if pos == 'ROW' else 'ROW'
+        targets = self.pixels.reshape(-1).astype(int)
+        self.pixels = np.eye(5)[targets]
+        self.pixels = self.pixels.flatten()
+        return self.pixels, self.is_dangerous
