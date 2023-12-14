@@ -75,4 +75,4 @@ class Image:
         targets = self.pixels.reshape(-1).astype(int)
         self.pixels = np.eye(5)[targets]
         self.pixels = self.pixels.flatten()
-        return self.pixels, self.is_dangerous
+        return self.pixels, self.is_dangerous, self.third_wire

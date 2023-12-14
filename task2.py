@@ -15,7 +15,7 @@ INITIALIZATION
 ALPHA = 0.5
 
 # Number of examples 
-NUM_OF_EXAMPLES = 1
+NUM_OF_EXAMPLES = 10
 
 # Threshold for error
 THRESHOLD = 0.005
@@ -30,10 +30,11 @@ outputs = []
 
 # Populates training_set[] and outputs[] with pixel data and corresponding outputs
 def create_training_set():
-    # Store the initial number of examples, which may change if an image is NOT dangerous
-    temporary_iterations = NUM_OF_EXAMPLES
+    # Loop control variable for number of iterations
+    num_iterations = 0
+
     # Iterate over all the examples
-    for n in range(temporary_iterations):
+    while (num_iterations < NUM_OF_EXAMPLES):
         # Create a new image, and extract data
         new_image = Image()
         # Data: example -> 20x20 array of pixels, output -> dangerous or not, color -> wire to be cut
@@ -41,48 +42,42 @@ def create_training_set():
 
         # If image is not dangerous, skip this example, and we need an extra iteration
         if (output == False):
-            temporary_iterations = temporary_iterations + 1
             continue
 
         # Else, store the example and output color into training_set and outputs
         else:
             # Reshape example[][], which is a 20X20 array, into a 1X400 array
-            flattened_example = np.array(example).reshape(1,-1)
+            flattened_example = np.array(example).reshape(-1)
             # Store this flattened array into training_set[]
             training_set.append(flattened_example)
-            # Transform each color in training-set[] into an integer (1=red, 2=green, 3=blue, 4=yellow)
-            for pixel in range(400):
-                color = training_set[pixel]
-                if (color == 'R'):
-                    training_set[pixel] = 1
-                elif (color == 'G'):
-                    training_set[pixel] = 2
-                elif (color == 'B'):
-                    training_set[pixel] = 3
-                elif (color == 'Y'):
-                    training_set[pixel] = 4
-                else:
-                    continue
-                
+
             # Use one-hot encoding to store the wire to be cut into outputs[]
-            if (color == 'R'):
+            if (color == 1):
+                # Append red
                 outputs.append([1,0,0,0])
-            elif (color == 'G'):
+            elif (color == 2):
+                # Append blue
                 outputs.append([0,1,0,0])
-            elif (color == 'B'):
+            elif (color == 3):
+                # Append yellow
                 outputs.append([0,0,1,0])
-            elif (color == 'Y'):
+            elif (color == 4):
+                # Append green
                 outputs.append([0,0,0,1])
             else:
-                continue
-
+                # Invalid color and abort method
+                print("INVALID COLOR")
+                return
+            
+            # Update loop control variable SINCE we had a dangerous wire
+            num_iterations = num_iterations + 1
 
 '''
 SOFTMAX REGRESSION
 '''
 
 # Initialize a 400x4 array of 0s for the weight_matrix[][]
-weight_matrix = np.zeros((400,4))
+weight_matrix = np.zeros((4,400))
 # Initialize a 1x4 array of 0s for the bias for each color
 bias_vector = np.zeros(4)
 
@@ -99,8 +94,10 @@ def softmax_regression(example_number):
     current_example = training_set[example_number]
     current_output = outputs[example_number]
 
+    #print(len(current_example))
+
     # Contains P(Y=k | data) for k = Red, Blue, Yellow, Green
-    predicted_output = []
+    predicted_output = [0, 0, 0, 0]
 
     # Formula: y_k = e^(dot_product + bias_term for k) / SUM(over j)[e^(dot_product + bias term for j)]
         # We simplify this to y_k = numerator / denominator
@@ -220,14 +217,16 @@ def stocastic_gradient_descent():
     # Iterate until the error becomes minimized, meaning delta(error) = change in error = abs(new_error - old_error) < THRESHOLD
     while abs(new_error - old_error) >= THRESHOLD:
         # Choose a random example for Stochastic Gradient Descent (SGD)
-        chosen_example_num = random.randint(0, NUM_OF_EXAMPLES)
+
+        # chosen_example_num = random.randint(0, NUM_OF_EXAMPLES)
+        chosen_example_num = 0
 
         # Iterate over all features in the chosen example (x1, x2, x3, ...)
         for h in range(400):
-            # Iterate over all color choices for each example
+            # Iterate over all color choices for each feature
             for k in range(4):
                 # Store the weight w_h,k from the weight_matrix. This matrix is UPDATED as the loop iterates and SGD progresses
-                weight_hk = weight_matrix[h][k]
+                weight_hk = weight_matrix[k][h]
 
                 # Compute the dL/dw_k,h using dL_dwkh()
                 weight_gradient = dL_dwkh(chosen_example_num, k, h)
@@ -236,7 +235,7 @@ def stocastic_gradient_descent():
                 new_weight_hk = weight_hk - ALPHA * weight_gradient
 
                 # Store the new weight in the weight matrix so that the weight matrix better maps inputs to the output data
-                weight_matrix[h][k] = new_weight_hk
+                weight_matrix[k][h] = new_weight_hk
 
         # Iterate over all color choices for bias
         for k in range(4):
@@ -274,7 +273,7 @@ def run_multiclass_classification():
 # Main method to run Multiclass Classification
 if __name__ == '__main__':
     final_weight_matrix = run_multiclass_classification()
-    print(len(final_weight_matrix))
+    print(final_weight_matrix)
     
 
 
