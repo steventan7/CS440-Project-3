@@ -30,16 +30,18 @@ outputs = []
 
 # Populates training_set[] and outputs[] with pixel data and corresponding outputs
 def create_training_set():
+    # Store the initial number of examples, which may change if an image is NOT dangerous
+    temporary_iterations = NUM_OF_EXAMPLES
     # Iterate over all the examples
-    for n in range(NUM_OF_EXAMPLES):
-        
+    for n in range(temporary_iterations):
         # Create a new image, and extract data
         new_image = Image()
         # Data: example -> 20x20 array of pixels, output -> dangerous or not, color -> wire to be cut
         example, output, color = new_image.create_image()
 
-        # If image is not dangerous, skip this example
+        # If image is not dangerous, skip this example, and we need an extra iteration
         if (output == False):
+            temporary_iterations = temporary_iterations + 1
             continue
 
         # Else, store the example and output color into training_set and outputs
@@ -85,7 +87,7 @@ weight_matrix = np.zeros((400,4))
 bias_vector = np.zeros(4)
 
 # Weight Matrix details:
-    # Contains 4 arrays, one for each color (R, G, B, Y)
+    # Contains 4 arrays, one for each color (R, B, Y, G)
     # The contents in each array dictate the weights required for each pixel to predict that color.
     # Ex: If weight_matrix[0] = [w1, w2, w3 ... w400] is for red, then weight_matrix[0] * training_set[n] is predictor for red color in nth example.
 
@@ -97,7 +99,7 @@ def softmax_regression(example_number):
     current_example = training_set[example_number]
     current_output = outputs[example_number]
 
-    # Contains P(Y=k | data) for k = Red, Blue, Green, Yellow
+    # Contains P(Y=k | data) for k = Red, Blue, Yellow, Green
     predicted_output = []
 
     # Formula: y_k = e^(dot_product + bias_term for k) / SUM(over j)[e^(dot_product + bias term for j)]
@@ -238,7 +240,6 @@ def stocastic_gradient_descent():
 
         # Iterate over all color choices for bias
         for k in range(4):
-
             # Extract the bias corresponding to current color. This vector is UPDATED as the loop iterates and SGD progresses
             bias_k = bias_vector[k]
 
@@ -268,11 +269,13 @@ def run_multiclass_classification():
     stocastic_gradient_descent()
 
     # Print out the final weights that map input pixels to an output wire
-    print(weight_matrix)
+    return weight_matrix
 
-
-
-
+# Main method to run Multiclass Classification
+if __name__ == '__main__':
+    final_weight_matrix = run_multiclass_classification()
+    print(len(final_weight_matrix))
+    
 
 
 
