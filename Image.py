@@ -67,6 +67,8 @@ class Image:
                 col = random.choice(list(cols))
                 cols.remove(col)
                 self.pixels[:, col] = color
+                if i == 3:
+                    self.third_wire = color
                 if red_seen and red_pos == 'ROW' and color == 3:
                     self.is_dangerous = 1
             pos = 'COL' if pos == 'ROW' else 'ROW'
