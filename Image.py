@@ -8,7 +8,7 @@ import random
 from colorama import init, Back, Style
 init(autoreset=True)
 
-D = 10
+D = 20
 
 
 # Used to visualize the difference components of the game
@@ -16,13 +16,13 @@ def visualize_grid (image):
     for i in range(D):
         curr_row = ""
         for j in range(D):
-            if image[i][j] == 'R':
+            if image[i][j] == 1:
                 curr_row += (Style.RESET_ALL + Back.RED + "R_")
-            elif image[i][j] == 'B':
+            elif image[i][j] == 2:
                 curr_row += (Style.RESET_ALL + Back.BLUE + "B_")
-            elif image[i][j] == 'Y':
+            elif image[i][j] == 3:
                 curr_row += (Style.RESET_ALL + Back.YELLOW + "Y_")
-            elif image[i][j] == 'G':
+            elif image[i][j] == 4:
                 curr_row += (Style.RESET_ALL + Back.GREEN  + "G_")
             else:
                 curr_row += (Style.RESET_ALL + Back.WHITE + "__")
@@ -48,7 +48,7 @@ class Image:
         pos = 'ROW' if coin_flip <= .5 else 'COL'
         red_seen, red_pos = False, ''
         colors = [1, 2, 3, 4]
-        
+
         for i in range(4):
             color = random.choice(list(colors))
             if color == 1:
@@ -63,17 +63,14 @@ class Image:
                 self.pixels[row] = color
                 if red_seen and red_pos == 'COL' and color == 3:
                     self.is_dangerous = 1
-                if (i == 2):
-                    self.third_wire = color
             else:
                 col = random.choice(list(cols))
                 cols.remove(col)
                 self.pixels[:, col] = color
+                if i == 3:
+                    self.third_wire = color
                 if red_seen and red_pos == 'ROW' and color == 3:
                     self.is_dangerous = 1
-                if (i == 2):
-                    self.third_wire = color
-                
             pos = 'COL' if pos == 'ROW' else 'ROW'
         targets = self.pixels.reshape(-1).astype(int)
         self.pixels = np.eye(5)[targets]
