@@ -14,6 +14,9 @@ INITIALIZATION
 # Learning Rate
 ALPHA = 0.1
 
+# Ridge Regularization constant
+LAMBDA = 3
+
 # Number of examples 
 NUM_OF_EXAMPLES = 500
 
@@ -205,6 +208,14 @@ def dL_dbk(example_number, k, h):
 '''
 GRADIENT DESCENT
 '''
+# Computes the sum of squared elements in weight_matrix for Ridge Regularization
+def ridge_regularization(weights):
+    ridge_sum = 0
+    for h in range(400):
+        for k in range(4):
+            ridge_sum =  ridge_sum + (weight_matrix[k][h] * weight_matrix[k][h])
+    
+    return ridge_sum
 
 # Perform gradient descent on the loss function to optimize the weights so that the loss function is minimized
 def stocastic_gradient_descent():
@@ -217,22 +228,23 @@ def stocastic_gradient_descent():
     # Iterate until the error becomes minimized, meaning delta(error) = change in error = abs(new_error - old_error) < THRESHOLD
     while abs(new_error - old_error) >= THRESHOLD:
         # Choose a random example for Stochastic Gradient Descent (SGD)
-
-        # chosen_example_num = random.randint(0, NUM_OF_EXAMPLES)
-        chosen_example_num = 0
+        chosen_example_num = random.randint(0, NUM_OF_EXAMPLES)
 
         # Iterate over all features in the chosen example (x1, x2, x3, ...)
         for h in range(400):
             # Iterate over all color choices for each feature
             for k in range(4):
+                # Store the sum of squared weights in ridge_sum for Ridge Regularization
+                ridge_sum = ridge_regularization(weight_matrix)
+
                 # Store the weight w_h,k from the weight_matrix. This matrix is UPDATED as the loop iterates and SGD progresses
                 weight_hk = weight_matrix[k][h]
 
                 # Compute the dL/dw_k,h using dL_dwkh()
                 weight_gradient = dL_dwkh(chosen_example_num, k, h)
 
-                # Compute the new weight by changing it by (learning rate)*(derivative)
-                new_weight_hk = weight_hk - ALPHA * weight_gradient
+                # Compute the new weight by changing it by (learning rate)*(derivative) and prevent overfitting by (LAMBDA)*(ridge_sum)
+                new_weight_hk = weight_hk - (ALPHA * weight_gradient + LAMBDA * ridge_sum)
 
                 # Store the new weight in the weight matrix so that the weight matrix better maps inputs to the output data
                 weight_matrix[k][h] = new_weight_hk
