@@ -12,13 +12,13 @@ from Image import Image
 INITIALIZATION
 '''
 # Learning Rate
-ALPHA = 0.5
+ALPHA = 0.1
 
 # Number of examples 
-NUM_OF_EXAMPLES = 10
+NUM_OF_EXAMPLES = 500
 
 # Threshold for error
-THRESHOLD = 0.005
+THRESHOLD = 0.000001
 
 # Array of NUM_OF_EXAMPLES numpy arrays (each 1X400), where each array represents an 
 # example (20X20 grid) and the elements represent the colors of the 400 pixels in the example. 
@@ -256,7 +256,36 @@ def stocastic_gradient_descent():
 
         # Update old_error so that the loop condition computes the correct value in the next iteration
         old_error = new_error
-        
+
+# Compute the sucess rte using the weight matrix OPTIMIZED by SGD
+def compute_success_rate():
+    # Count the number of sucesses
+    success_count = 0
+
+    # Iterate over all examples. This forms the training set
+    for training_example in range(NUM_OF_EXAMPLES):
+        # Extract the correct outputs (each one is a one-hot encoded array) from outputs[]
+        correct_output = outputs[training_example]
+        # Calculate the model output (a one-hot encoded array) using the prediction from softmax_regression()
+        model_output = softmax_regression(training_example)
+        # The index corresponding to the correct color in correct_output. This will be 1.
+        correct_color_actual = correct_output.index(max(correct_output))
+        # The index corresponding to the correct color using the prediction. This will be 
+        # the color with the highest probability for this example computed by softmax_regression()
+        correct_color_predicted = model_output.index(max(model_output))
+
+        # If the indices between actual and predicted match, then the model has made a correct prediction and we increment success_rate
+        if (correct_color_actual == correct_color_predicted):
+            success_count = success_count + 1 
+        else:
+            continue
+
+    # Compute the rate by dividing count by the TOTAL number of examples
+    success_rate = success_count / NUM_OF_EXAMPLES
+
+    # Return the final success rate
+    return success_rate
+
 # Runs the entire Multiclass Classification and performs Stochastic Gradient Descent (SGD) to compute the optimal parameters
 def run_multiclass_classification():
 
@@ -267,14 +296,24 @@ def run_multiclass_classification():
     # using softmax_regression() and loss_function(), and optimize the weights for every example
     stocastic_gradient_descent()
 
-    # Print out the final weights that map input pixels to an output wire
-    return weight_matrix
+    # Using the weights optimized by SGD, calculate the success rate 
+    success_rate = compute_success_rate()
+
+    # Return the success rate
+    return success_rate
 
 # Main method to run Multiclass Classification
 if __name__ == '__main__':
-    final_weight_matrix = run_multiclass_classification()
-    print(final_weight_matrix)
     
+    create_training_set()
+    stocastic_gradient_descent()
+    final_rate = run_multiclass_classification()
+    print(final_rate)
+
+
+    # print(outputs[0])
+
+
 
 
 
